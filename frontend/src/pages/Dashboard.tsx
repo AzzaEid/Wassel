@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [product, setProduct] = useState('')
   const [amount, setAmount] = useState('')
   const [address, setAddress] = useState('')
+  const [customerName, setCustomerName] = useState('')
   const [creating, setCreating] = useState(false)
   const [createdOrder, setCreatedOrder] = useState<any>(null)
   const [copied, setCopied] = useState(false)
@@ -52,20 +53,23 @@ export default function Dashboard() {
     } finally { setChecking(false) }
   }
 
+  const isNewCustomer = scoring && !scoring.customer_name
+
   const handleCreate = async () => {
     if (!product || !amount || !scoring) return
+    if (isNewCustomer && !customerName.trim()) return
     setCreating(true)
     try {
       const order = await createOrder({
         merchant_id: MERCHANT_ID,
         customer_phone: phone.trim(),
-        customer_name: scoring.customer_name ?? undefined,
+        customer_name: scoring.customer_name ?? customerName.trim() || undefined,
         product_name: product,
         amount: parseFloat(amount),
         delivery_address: address || undefined,
       })
       setCreatedOrder(order)
-      setPhone(''); setProduct(''); setAmount(''); setAddress(''); setScoring(null)
+      setPhone(''); setProduct(''); setAmount(''); setAddress(''); setScoring(null); setCustomerName('')
       fetchData()
     } finally { setCreating(false) }
   }
@@ -139,6 +143,18 @@ export default function Dashboard() {
         {/* Order form — shown after phone check */}
         {scoring && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {isNewCustomer && (
+              <input
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+                placeholder="اسم الزبون *"
+                style={{
+                  border: '1px solid var(--amber)', borderRadius: 8,
+                  padding: '8px 12px', fontSize: 14, textAlign: 'right', outline: 'none',
+                  backgroundColor: 'var(--amber-light)',
+                }}
+              />
+            )}
             <input
               value={product}
               onChange={e => setProduct(e.target.value)}
@@ -171,7 +187,7 @@ export default function Dashboard() {
             </div>
             <button
               onClick={handleCreate}
-              disabled={creating || !product || !amount}
+              disabled={creating || !product || !amount || (isNewCustomer && !customerName.trim())}
               className="btn-primary"
               style={{ padding: '10px', fontSize: 14 }}
             >

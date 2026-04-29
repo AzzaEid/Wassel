@@ -34,6 +34,7 @@ class Order(Base):
     deposit_percentage = Column(Integer)
     deposit_amount = Column(Float)
     status = Column(String, default="pending")
+    source = Column(String, default="manual")  # "manual" | "webhook"
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime)
 

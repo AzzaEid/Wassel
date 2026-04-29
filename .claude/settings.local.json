@@ -10,7 +10,8 @@
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('orders:', len\\(d['orders']\\)\\); [print\\(' -', o['order_status'], o['escrow_status']\\) for o in d['orders']]\")",
       "Bash(python -c ' *)",
       "Bash(netstat -ano)",
-      "Bash(taskkill /PID 7660 /F)"
+      "Bash(taskkill /PID 7660 /F)",
+      "Bash(grep -E \"\\\\.py$\")"
     ]
   }
 }

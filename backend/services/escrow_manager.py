@@ -2,7 +2,7 @@ from datetime import datetime
 
 VALID_TRANSITIONS = {
     "empty": ["funded", "cancelled", "expired"],
-    "funded": ["driver_confirmed", "frozen", "refunded", "auto_released", "cancelled"],
+    "funded": ["driver_confirmed", "released", "frozen", "refunded", "auto_released", "cancelled"],
     "driver_confirmed": ["released", "frozen", "auto_released"],
     "released": [],
     "auto_released": [],

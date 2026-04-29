@@ -18,8 +18,17 @@ def customer_confirm(order_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Order not found")
 
     escrow = db.query(EscrowAccount).filter(EscrowAccount.order_id == order_id).first()
-    if not escrow or escrow.status != "driver_confirmed":
-        raise HTTPException(status_code=400, detail="Driver has not confirmed delivery yet")
+    if not escrow:
+        raise HTTPException(status_code=404, detail="Escrow not found")
+
+    if order.source == "manual":
+        # No delivery company — customer confirms directly after payment
+        if escrow.status != "funded":
+            raise HTTPException(status_code=400, detail="Order has not been paid yet")
+    else:
+        # Delivery company involved — driver must confirm first
+        if escrow.status != "driver_confirmed":
+            raise HTTPException(status_code=400, detail="Driver has not confirmed delivery yet")
 
     if order.strategy == "deposit":
         remaining = round(order.total_amount - order.deposit_amount, 2)

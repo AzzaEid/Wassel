@@ -56,6 +56,7 @@ def create_order(body: CreateOrderBody, db: Session = Depends(get_db)):
         deposit_percentage=strategy_data["deposit_percentage"],
         deposit_amount=strategy_data["deposit_amount"],
         status="pending",
+        source="manual",
         created_at=now,
         expires_at=now + timedelta(hours=24),
     )
@@ -144,6 +145,7 @@ def get_order(order_id: str, db: Session = Depends(get_db)):
         "merchant_name": merchant.name if merchant else None,
         "escrow_status": escrow.status if escrow else None,
         "total_held": escrow.total_held if escrow else 0,
+        "source": order.source,
     }
 
 

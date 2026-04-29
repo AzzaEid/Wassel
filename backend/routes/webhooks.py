@@ -55,6 +55,7 @@ def delivery_webhook(body: DeliveryWebhookBody, db: Session = Depends(get_db)):
             deposit_percentage=strategy_data["deposit_percentage"],
             deposit_amount=strategy_data["deposit_amount"],
             status="pending",
+            source="webhook",
             created_at=now,
             expires_at=now + timedelta(hours=24),
         )

@@ -200,10 +200,11 @@ export default function PaymentPage() {
     )
   }
 
-  /* ── Paid → Waiting ─────────────────────────────── */
+  /* ── Paid → Manual order: confirm immediately; Webhook order: wait for driver ── */
   if (status === 'deposit_paid' || status === 'fully_paid') {
     const paidAmount = status === 'deposit_paid' ? order.deposit_amount : order.total_amount
     const remaining = status === 'deposit_paid' ? (order.total_amount - order.deposit_amount) : 0
+    const isManual = order.source === 'manual'
 
     return (
       <PageShell>
@@ -233,18 +234,53 @@ export default function PaymentPage() {
           )}
         </div>
 
-        <div style={{
-          backgroundColor: 'var(--blue-light)', borderRadius: 10, padding: '12px 14px',
-          display: 'flex', gap: 10, alignItems: 'flex-start',
-        }}>
-          <span style={{ fontSize: 18 }}>🔒</span>
-          <div>
-            <div style={{ fontWeight: 600, color: 'var(--blue)', fontSize: 14 }}>مبلغك محمي في Escrow</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-              زر تأكيد الاستلام سيظهر تلقائياً عند وصول طلبك
+        {isManual ? (
+          /* No delivery company — customer confirms receipt directly */
+          <>
+            <OrderInfoCard order={order} />
+            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14, margin: '12px 0' }}>
+              هل استلمت طلبك؟
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={handleConfirm}
+                disabled={confirming}
+                style={{
+                  width: '100%', padding: '14px', borderRadius: 10,
+                  backgroundColor: 'var(--primary)', color: 'white',
+                  border: 'none', fontWeight: 600, fontSize: 15, cursor: 'pointer',
+                }}
+              >
+                {confirming ? 'جاري المعالجة...' : '✅ تأكيد الاستلام'}
+              </button>
+              <button
+                onClick={handleDispute}
+                disabled={disputing}
+                style={{
+                  width: '100%', padding: '14px', borderRadius: 10,
+                  backgroundColor: 'var(--danger-light)', color: 'var(--danger)',
+                  border: '1px solid var(--danger)', fontWeight: 600, fontSize: 15, cursor: 'pointer',
+                }}
+              >
+                {disputing ? 'جاري المعالجة...' : '⚠️ في مشكلة'}
+              </button>
+            </div>
+          </>
+        ) : (
+          /* Delivery company involved — wait for driver webhook */
+          <div style={{
+            backgroundColor: 'var(--blue-light)', borderRadius: 10, padding: '12px 14px',
+            display: 'flex', gap: 10, alignItems: 'flex-start',
+          }}>
+            <span style={{ fontSize: 18 }}>🔒</span>
+            <div>
+              <div style={{ fontWeight: 600, color: 'var(--blue)', fontSize: 14 }}>مبلغك محمي في Escrow</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                زر تأكيد الاستلام سيظهر تلقائياً عند وصول طلبك
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </PageShell>
     )
   }
