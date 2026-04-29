@@ -63,7 +63,7 @@ export default function Dashboard() {
       const order = await createOrder({
         merchant_id: MERCHANT_ID,
         customer_phone: phone.trim(),
-        customer_name: scoring.customer_name ?? customerName.trim() || undefined,
+        customer_name: (scoring.customer_name ?? customerName.trim()) || undefined,
         product_name: product,
         amount: parseFloat(amount),
         delivery_address: address || undefined,
