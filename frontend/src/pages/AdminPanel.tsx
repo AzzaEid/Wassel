@@ -321,6 +321,12 @@ export default function AdminPanel() {
               <a href="/dashboard" target="_blank" style={{ color: 'var(--primary)', fontSize: 13, textDecoration: 'none' }}>
                 ↗ لوحة التاجر
               </a>
+              <a href="/delivery-company" target="_blank" style={{ color: 'var(--primary)', fontSize: 13, textDecoration: 'none' }}>
+                🚚 شركة التوصيل (إنشاء طلب)
+              </a>
+              <a href="/driver" target="_blank" style={{ color: 'var(--primary)', fontSize: 13, textDecoration: 'none' }}>
+                🛵 واجهة السائق
+              </a>
               {selectedOrder && (
                 <a href={`/pay/${selectedOrder.id}`} target="_blank" style={{ color: 'var(--blue)', fontSize: 13, textDecoration: 'none' }}>
                   ↗ صفحة دفع الطلب المختار

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import FloatingNav from './FloatingNav'
 
 interface Props {
   children: ReactNode
@@ -8,8 +8,6 @@ interface Props {
 }
 
 export default function Layout({ children, balance, merchantName }: Props) {
-  const loc = useLocation()
-
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
       <header style={{
@@ -28,18 +26,6 @@ export default function Layout({ children, balance, merchantName }: Props) {
               color: 'white', fontWeight: 700, fontSize: 18,
             }}>و</div>
             <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>وصّل</span>
-          </div>
-
-          {/* Nav links */}
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard"
-              style={{ color: loc.pathname === '/dashboard' ? 'var(--primary)' : 'var(--text-secondary)', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
-              لوحة التاجر
-            </Link>
-            <Link to="/admin"
-              style={{ color: loc.pathname === '/admin' ? 'var(--primary)' : 'var(--text-secondary)', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
-              لوحة التحكم
-            </Link>
           </div>
 
           {/* Merchant info */}
@@ -66,6 +52,8 @@ export default function Layout({ children, balance, merchantName }: Props) {
       <main style={{ maxWidth: 1280, margin: '0 auto', padding: '1.5rem 1rem' }}>
         {children}
       </main>
+
+      <FloatingNav />
     </div>
   )
 }

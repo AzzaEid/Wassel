@@ -135,6 +135,31 @@ def sim_48h(order_id: str, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/delivery-queue")
+def get_delivery_queue(db: Session = Depends(get_db)):
+    rows = (
+        db.query(Order, EscrowAccount, Customer)
+        .join(EscrowAccount, EscrowAccount.order_id == Order.id)
+        .join(Customer, Customer.id == Order.customer_id)
+        .filter(EscrowAccount.status == "funded")
+        .order_by(EscrowAccount.funded_at.desc())
+        .all()
+    )
+    return [
+        {
+            "id": o.id,
+            "product_name": o.product_name,
+            "customer_name": c.name,
+            "customer_phone": c.phone,
+            "delivery_address": o.delivery_address,
+            "total_amount": o.total_amount,
+            "order_status": o.status,
+            "escrow_status": e.status,
+        }
+        for o, e, c in rows
+    ]
+
+
 @router.post("/reset")
 def admin_reset():
     reset_db()
