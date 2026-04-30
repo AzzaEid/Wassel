@@ -11,7 +11,9 @@
       "Bash(python -c ' *)",
       "Bash(netstat -ano)",
       "Bash(taskkill /PID 7660 /F)",
-      "Bash(grep -E \"\\\\.py$\")"
+      "Bash(grep -E \"\\\\.py$\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Balance:', d['merchant']['balance']\\)\")"
     ]
   }
 }

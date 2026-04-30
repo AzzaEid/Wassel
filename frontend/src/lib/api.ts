@@ -61,3 +61,9 @@ export const adminReset = () =>
 
 export const adminEvents = () =>
   api.get('/api/admin/events').then(r => r.data)
+
+export const getDeliveryQueue = () =>
+  api.get('/api/admin/delivery-queue').then(r => r.data)
+
+export const fireDriverAction = (action: 'delivered' | 'refused', orderId: string) =>
+  api.post(`/api/admin/simulate/${action}/${orderId}`).then(r => r.data)
