@@ -18,14 +18,9 @@ export default function Layout({ children, balance, merchantName }: Props) {
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1rem' }}
           className="flex items-center justify-between h-14">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div style={{
-              width: 36, height: 36, borderRadius: '50%',
-              backgroundColor: 'var(--primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: 700, fontSize: 18,
-            }}>و</div>
-            <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>وصّل</span>
+          <div className="flex items-center gap-2">
+            <img src="/wassel_logo.png" alt="وصّل" style={{ width: 34, height: 34, objectFit: 'contain' }} />
+            <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--primary)' }}>وصّل</span>
           </div>
 
           {/* Merchant info */}

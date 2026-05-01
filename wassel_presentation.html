@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وصّل — Wassel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1D6B4F;
+    --primary-light: #E1F5EE;
+    --primary-mid: #2A8B68;
+    --gold: #B45309;
+    --gold2: #D97706;
+    --gold-dim: rgba(180,83,9,0.15);
+    --dark: #F3F8F5;
+    --dark2: #FFFFFF;
+    --dark3: #E6F2EC;
+    --glass: rgba(29,107,79,0.05);
+    --glass-border: rgba(29,107,79,0.2);
+    --text: #0F2318;
+    --text-muted: #4A6B5A;
+    --border: rgba(29,107,79,0.18);
+    --danger: #DC2626;
+    --success: #059669;
+    --warn: #B45309;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed;
+    width: 10px; height: 10px;
+    background: var(--gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s;
+    mix-blend-mode: multiply;
+  }
+  .cursor.big { width: 40px; height: 40px; opacity: 0.4; }
+
+  .slides-wrapper { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3vh 5vw;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1), transform 0.55s cubic-bezier(0.4,0,0.2,1);
+    transform: translateX(-30px);
+    overflow-y: auto;
+  }
+
+  .slide.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+  .slide.exit { opacity: 0; transform: translateX(30px); }
+
+  .bg-texture {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(29,107,79,0.09) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 80%, rgba(180,83,9,0.05) 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(29,107,79,0.035) 60px, rgba(29,107,79,0.035) 61px),
+      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(29,107,79,0.035) 60px, rgba(29,107,79,0.035) 61px);
+    pointer-events: none; z-index: 0;
+  }
+
+  .slide > * { position: relative; z-index: 1; }
+
+  .counter {
+    position: fixed; bottom: 28px; left: 40px;
+    font-family: 'Space Mono', monospace; font-size: 13px;
+    color: var(--text-muted); z-index: 100; letter-spacing: 2px;
+    background: rgba(255,255,255,0.7); padding: 3px 8px; border-radius: 6px;
+  }
+
+  .nav-hint {
+    position: fixed; bottom: 28px; right: 40px;
+    font-size: 12px; color: var(--text-muted);
+    z-index: 100; font-family: 'Space Mono', monospace;
+    background: rgba(255,255,255,0.7); padding: 3px 8px; border-radius: 6px;
+  }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--gold));
+    z-index: 100; transition: width 0.5s ease;
+  }
+
+  .slide-label {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 3px; color: var(--gold);
+    margin-bottom: 12px; opacity: 0.8;
+  }
+
+  h2.section-title {
+    font-family: 'Cairo', sans-serif; font-weight: 700;
+    font-size: clamp(22px, 3vw, 38px); color: var(--text);
+    margin-bottom: 24px;
+  }
+
+  .gold { color: var(--gold); }
+  .green { color: var(--success); }
+  .warn { color: var(--warn); }
+  .muted { color: var(--text-muted); }
+
+  .slide-header { text-align: center; margin-bottom: 20px; width: 100%; }
+
+  /* Glass card — shared */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  /* ═══════════════════════════════════
+     SLIDE 1 — COVER
+  ═══════════════════════════════════ */
+  #s1 { text-align: center; }
+
+  .logo-circle {
+    width: 120px; height: 120px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 28px;
+    animation: pulse-logo 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(29,107,79,0.5));
+  }
+  .logo-circle img { width: 120px; height: 120px; object-fit: contain; }
+  @keyframes pulse-logo {
+    0%,100% { filter: drop-shadow(0 0 20px rgba(29,107,79,0.5)); }
+    50% { filter: drop-shadow(0 0 40px rgba(29,107,79,0.8)) drop-shadow(0 0 80px rgba(29,107,79,0.3)); }
+  }
+  .cover-name-ar { font-family:'Cairo',sans-serif; font-weight:900; font-size:clamp(56px,9vw,96px); color:var(--text); line-height:1; margin-bottom:4px; animation:fade-up 0.8s ease both 0.2s; }
+  .cover-name-en { font-family:'Space Mono',monospace; font-size:clamp(16px,2vw,24px); color:var(--gold); letter-spacing:8px; margin-bottom:28px; animation:fade-up 0.8s ease both 0.35s; }
+  .cover-tagline { font-size:clamp(16px,2.2vw,22px); color:var(--text-muted); margin-bottom:40px; font-style:italic; animation:fade-up 0.8s ease both 0.5s; }
+  .cover-tagline span { color:var(--gold); font-style:normal; }
+  .cover-divider { width:60px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:0 auto 22px; animation:fade-up 0.8s ease both 0.6s; }
+  .cover-meta { font-family:'Space Mono',monospace; font-size:12px; color:var(--text-muted); letter-spacing:1px; animation:fade-up 0.8s ease both 0.7s; }
+  @keyframes fade-up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ═══════════════════════════════════
+     SLIDE 2 — PROBLEM
+  ═══════════════════════════════════ */
+  .problem-cards {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 18px; width: 100%; max-width: 1100px; margin-bottom: 20px;
+  }
+  .problem-card {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; position: relative; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(29,107,79,0.08);
+  }
+  .problem-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .problem-card:nth-child(1)::before { background: var(--gold); }
+  .problem-card:nth-child(2)::before { background: var(--danger); }
+  .problem-card:nth-child(3)::before { background: var(--primary-mid); }
+  .big-num { font-family:'Space Mono',monospace; font-size:clamp(48px,6vw,76px); font-weight:700; color:var(--gold); line-height:1; margin-bottom:8px; }
+  .card-desc { font-size:13px; color:var(--text-muted); line-height:1.7; }
+  .card-title { font-family:'Cairo',sans-serif; font-weight:700; font-size:16px; color:var(--text); margin-bottom:10px; }
+  .pain-item { display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--text-muted); margin-bottom:7px; line-height:1.5; }
+  .pain-item::before { content:'←'; color:var(--danger); flex-shrink:0; }
+  .problem-footer { font-size:13px; color:var(--danger); border:1px solid rgba(224,82,82,0.2); border-radius:8px; padding:10px 20px; background:rgba(224,82,82,0.05); text-align:center; }
+
+  /* ═══════════════════════════════════
+     SLIDE 3 — SOLUTION
+  ═══════════════════════════════════ */
+  .solution-headline { font-family:'Cairo',sans-serif; font-weight:900; font-size:clamp(22px,3vw,38px); background:linear-gradient(135deg,var(--primary-mid),var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:28px; text-align:center; }
+  .flow { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:28px; flex-wrap:wrap; }
+  .flow-node { background:var(--dark3); border:1px solid var(--border); border-radius:12px; padding:14px 22px; text-align:center; min-width:120px; }
+  .flow-node .node-icon { font-size:26px; margin-bottom:5px; }
+  .flow-node .node-label { font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; color:var(--text); }
+  .flow-node.center-node { background:linear-gradient(135deg,var(--primary) 0%,#0D4A36 100%); border-color:var(--primary-mid); min-width:170px; padding:18px 26px; box-shadow:0 0 40px rgba(29,107,79,0.3); }
+  .flow-node.center-node .node-label { font-size:17px; color:white; }
+  .delivery-sub { font-size:10px; color:rgba(255,255,255,0.5); margin-top:3px; }
+  .flow-arrow { width:36px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:18px; flex-shrink:0; }
+  .center-wrapper { display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .delivery-node { background:var(--dark3); border:1px dashed var(--border); border-radius:10px; padding:6px 14px; text-align:center; font-size:11px; color:var(--text-muted); }
+  .arrow-up { color:var(--primary-mid); font-size:15px; }
+  .solution-points { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; width:100%; max-width:900px; margin-bottom:18px; }
+  .sol-point { background:var(--dark2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; font-size:13px; color:var(--text-muted); line-height:1.6; text-align:center; }
+  .sol-point .icon { font-size:20px; margin-bottom:5px; }
+  .spectrum-bar { background:var(--dark2); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:12px 20px; text-align:center; max-width:700px; width:100%; }
+  .spectrum-bar .label { font-size:12px; color:var(--text-muted); margin-bottom:8px; }
+  .spectrum-steps { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+  .spec-step { background:rgba(29,107,79,0.15); border:1px solid rgba(29,107,79,0.3); border-radius:6px; padding:5px 12px; font-size:13px; color:var(--gold); font-family:'Cairo',sans-serif; font-weight:600; }
+  .spec-arrow { color:var(--primary-mid); font-size:14px; }
+
+  /* ═══════════════════════════════════
+     SLIDE 4 — RISK ENGINE (CHANGE 2)
+  ═══════════════════════════════════ */
+  .risk-layout { display:grid; grid-template-columns:1fr 1.4fr; gap:24px; width:100%; max-width:1100px; }
+
+  .risk-formula-box {
+    background: var(--glass); border:1px solid var(--glass-border);
+    border-radius:12px; padding:1.25rem 1.5rem;
+  }
+  .risk-formula-title { font-family:'Cairo',sans-serif; font-weight:700; font-size:15px; color:var(--gold); margin-bottom:14px; }
+  .formula-eq {
+    font-family:'Space Mono',monospace; font-size:13px; color:var(--text);
+    background:rgba(29,107,79,0.07); border:1px solid rgba(29,107,79,0.15); border-radius:8px; padding:10px 14px; margin-bottom:14px;
+    line-height:1.8; direction:ltr; text-align:left;
+  }
+  .formula-note { font-size:12px; color:var(--text-muted); line-height:1.7; margin-bottom:8px; }
+  .formula-note span { color:var(--gold); }
+  .ai-note-gold {
+    margin-top:14px; padding:10px 14px; border-radius:8px;
+    background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
+    font-size:12px; color:var(--gold); line-height:1.6; text-align:center;
+  }
+
+  /* Strategy table */
+  .strat-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .strat-table th { font-family:'Cairo',sans-serif; font-weight:700; color:var(--gold); padding:8px 12px; text-align:right; border-bottom:1px solid rgba(245,158,11,0.3); font-size:12px; }
+  .strat-table td { padding:8px 12px; text-align:right; border-bottom:1px solid rgba(255,255,255,0.05); color:var(--text-muted); }
+  .strat-table tr:hover td { background:rgba(255,255,255,0.03); }
+  .score-range { font-family:'Space Mono',monospace; color:var(--text); font-size:12px; white-space:nowrap; }
+  .strat-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .sb-red { background:rgba(224,82,82,0.15); color:#ef8080; }
+  .sb-orange { background:rgba(245,158,11,0.15); color:var(--gold); }
+  .sb-yellow { background:rgba(250,200,11,0.15); color:#fcd34d; }
+  .sb-green { background:rgba(16,185,129,0.15); color:var(--success); }
+
+  /* ═══════════════════════════════════
+     SLIDE 5 — ORDER JOURNEY (CHANGE 3)
+  ═══════════════════════════════════ */
+  .journey-layout { display:grid; grid-template-columns:1fr 1fr; gap:20px; width:100%; max-width:1100px; margin-bottom:16px; }
+  .journey-col { background:var(--glass); border:1px solid var(--glass-border); border-radius:12px; padding:1.25rem; }
+  .journey-col-title { font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .jt-badge { font-size:10px; padding:2px 8px; border-radius:10px; font-weight:600; }
+  .jt-manual { background:rgba(29,107,79,0.2); color:var(--primary-mid); }
+  .jt-auto { background:rgba(245,158,11,0.15); color:var(--gold); }
+  .journey-step { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; }
+  .js-num { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Space Mono',monospace; font-size:10px; font-weight:700; flex-shrink:0; margin-top:1px; }
+  .js-num.green { background:rgba(16,185,129,0.15); color:var(--success); border:1px solid rgba(16,185,129,0.3); }
+  .js-num.gold { background:rgba(245,158,11,0.15); color:var(--gold); border:1px solid rgba(245,158,11,0.3); }
+  .js-text { font-size:12px; color:var(--text-muted); line-height:1.6; }
+  .js-text strong { color:var(--text); font-weight:600; }
+  .refusal-callout { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.35); border-radius:10px; padding:12px 16px; font-size:12px; color:var(--gold); line-height:1.7; text-align:center; max-width:1100px; width:100%; }
+
+  /* ═══════════════════════════════════
+     SLIDE 6 — DEMO / FEATURES (CHANGE 4)
+  ═══════════════════════════════════ */
+  .demo-layout { display:grid; grid-template-columns:1fr auto 1fr; gap:24px; width:100%; max-width:1000px; align-items:center; margin-bottom:20px; }
+  .desktop-mock { background:var(--dark2); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .mock-bar { background:var(--dark3); padding:8px 12px; display:flex; align-items:center; gap:6px; border-bottom:1px solid var(--border); }
+  .mock-dot { width:8px; height:8px; border-radius:50%; }
+  .mock-content { padding:14px; }
+  .mock-stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:10px; }
+  .mock-stat { background:var(--dark3); border-radius:6px; padding:7px; text-align:center; }
+  .mock-stat .ms-num { font-family:'Space Mono',monospace; font-size:13px; font-weight:700; color:var(--gold); }
+  .mock-stat .ms-label { font-size:9px; color:var(--text-muted); margin-top:2px; }
+  .mock-table-row { background:var(--dark3); border-radius:6px; padding:6px 9px; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .mock-badge { font-size:9px; padding:2px 7px; border-radius:4px; font-weight:600; }
+  .badge-green { background:rgba(16,185,129,0.2); color:#5dba94; }
+  .badge-yellow { background:rgba(245,158,11,0.15); color:var(--gold); }
+  .badge-blue { background:rgba(70,130,200,0.15); color:#7aacf0; }
+  .mobile-mock { width:130px; background:var(--dark2); border:1px solid var(--border); border-radius:16px; overflow:hidden; flex-shrink:0; }
+  .mobile-bar { background:var(--dark3); padding:7px; border-bottom:1px solid var(--border); display:flex; justify-content:center; }
+  .mobile-notch { width:38px; height:5px; background:rgba(255,255,255,0.1); border-radius:3px; }
+  .mobile-content { padding:10px 8px; }
+  .mobile-title { font-size:9px; font-family:'Cairo',sans-serif; font-weight:700; text-align:center; margin-bottom:8px; color:var(--text); }
+  .mobile-amount { text-align:center; font-family:'Space Mono',monospace; font-size:16px; font-weight:700; color:var(--gold); margin-bottom:10px; }
+  .mobile-option { background:var(--dark3); border:1px solid var(--border); border-radius:7px; padding:6px 7px; margin-bottom:5px; font-size:8px; color:var(--text-muted); }
+  .mobile-btn { background:var(--primary); border-radius:7px; padding:7px; text-align:center; font-size:9px; color:white; font-family:'Cairo',sans-serif; font-weight:700; margin-top:8px; }
+  .live-badge { background:var(--dark2); border:2px solid var(--gold); border-radius:14px; padding:18px 26px; text-align:center; position:relative; overflow:hidden; }
+  .live-badge::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%,rgba(245,158,11,0.08) 0%,transparent 70%); }
+  .live-icon { font-size:32px; margin-bottom:5px; }
+  .live-text { font-family:'Space Mono',monospace; font-size:13px; font-weight:700; color:var(--gold); letter-spacing:3px; }
+
+  .ai-insight-box { background:var(--glass); border:1px solid var(--glass-border); border-radius:12px; padding:1rem 1.5rem; width:100%; max-width:1000px; margin-bottom:14px; }
+  .ai-insight-title { font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; color:var(--gold); margin-bottom:8px; }
+  .ai-insight-desc { font-size:12px; color:var(--text-muted); line-height:1.7; font-style:italic; }
+
+  .impact-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:100%; max-width:1000px; }
+  .impact-card { background:var(--glass); border:1px solid var(--glass-border); border-radius:10px; padding:12px 14px; text-align:center; }
+  .impact-num { font-family:'Space Mono',monospace; font-size:20px; font-weight:700; color:var(--gold); margin-bottom:4px; }
+  .impact-label { font-size:11px; color:var(--text-muted); line-height:1.5; }
+
+  .demo-checks { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; width:100%; max-width:700px; }
+  .demo-check { display:flex; align-items:flex-start; gap:9px; font-size:12px; color:var(--text-muted); background:var(--dark2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; }
+  .demo-check .chk { color:var(--success); font-size:15px; flex-shrink:0; }
+
+  /* ═══════════════════════════════════
+     SLIDE 7 — TECH STACK (CHANGE 5)
+  ═══════════════════════════════════ */
+  .tech-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%; max-width:900px; margin-bottom:14px; }
+  .tech-card { background:var(--dark2); border:1px solid var(--border); border-radius:12px; padding:16px 18px; transition:border-color 0.2s, box-shadow 0.2s; box-shadow:0 1px 8px rgba(29,107,79,0.07); }
+  .tech-card:hover { border-color:var(--primary-mid); box-shadow:0 4px 16px rgba(29,107,79,0.14); }
+  .tech-icon { font-size:24px; margin-bottom:7px; }
+  .tech-name { font-family:'Space Mono',monospace; font-size:13px; font-weight:700; color:var(--text); margin-bottom:3px; }
+  .tech-desc { font-size:11px; color:var(--text-muted); line-height:1.5; }
+  .ai-highlight { background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.3); border-radius:12px; padding:14px 22px; max-width:900px; width:100%; }
+  .ai-highlight .ai-title { font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; color:var(--gold); margin-bottom:4px; }
+  .ai-highlight .ai-desc { font-size:12px; color:var(--text-muted); line-height:1.6; }
+
+  /* ═══════════════════════════════════
+     SLIDE 8 — BUSINESS MODEL (CHANGE 6)
+  ═══════════════════════════════════ */
+  .biz-layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; width:100%; max-width:1000px; margin-bottom:20px; }
+  .biz-section { background:var(--dark2); border:1px solid var(--border); border-radius:14px; padding:22px; }
+  .biz-section-title { font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; color:var(--gold); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .biz-item { display:flex; align-items:flex-start; gap:9px; margin-bottom:11px; font-size:12px; color:var(--text-muted); line-height:1.6; }
+  .biz-tag { background:rgba(29,107,79,0.2); color:var(--primary-mid); border-radius:4px; padding:2px 8px; font-size:10px; font-family:'Space Mono',monospace; font-weight:700; flex-shrink:0; margin-top:1px; }
+  .biz-tag.b2b { background:rgba(245,158,11,0.15); color:var(--gold); }
+  .biz-tag.b2c2 { background:rgba(70,130,200,0.15); color:#7aacf0; }
+  .biz-fee-note { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:8px; padding:10px 14px; font-size:12px; color:var(--gold); margin-top:10px; line-height:1.6; }
+  .biz-stats { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:1000px; width:100%; }
+  .biz-stat-card { background:linear-gradient(135deg,rgba(29,107,79,0.1) 0%,transparent 100%); border:1px solid rgba(245,158,11,0.25); border-radius:12px; padding:18px 22px; display:flex; align-items:center; gap:14px; }
+  .biz-stat-num { font-family:'Space Mono',monospace; font-size:clamp(22px,3vw,34px); font-weight:700; color:var(--gold); flex-shrink:0; }
+  .biz-stat-label { font-size:12px; color:var(--text-muted); line-height:1.5; }
+
+  /* ═══════════════════════════════════
+     SLIDE 9 — SCENARIOS (CHANGE 7)
+  ═══════════════════════════════════ */
+  .scenarios-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%; max-width:1100px; margin-bottom:16px; }
+  .scenario-card { background:var(--glass); border:1px solid var(--glass-border); border-radius:12px; padding:14px 18px; display:flex; align-items:flex-start; gap:12px; }
+  .sc-icon { font-size:22px; flex-shrink:0; margin-top:2px; }
+  .sc-title { font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; color:var(--text); margin-bottom:4px; }
+  .sc-desc { font-size:12px; color:var(--text-muted); line-height:1.6; }
+  .sc-badge { display:inline-block; font-size:10px; padding:1px 8px; border-radius:10px; font-weight:600; margin-bottom:5px; }
+  .sc-badge.done { background:rgba(16,185,129,0.15); color:var(--success); }
+  .sc-badge.auto { background:rgba(245,158,11,0.12); color:var(--gold); }
+  .scheduler-note { background:rgba(29,107,79,0.08); border:1px solid rgba(29,107,79,0.3); border-radius:10px; padding:12px 18px; font-size:12px; color:var(--text-muted); text-align:center; max-width:1100px; width:100%; }
+  .scheduler-note span { color:var(--primary-mid); font-weight:600; }
+
+  /* ═══════════════════════════════════
+     SLIDE 10 — INVESTMENT
+  ═══════════════════════════════════ */
+  .timeline { display:flex; align-items:flex-start; gap:0; width:100%; max-width:1000px; margin-bottom:24px; position:relative; }
+  .timeline::before { content:''; position:absolute; top:28px; right:28px; left:28px; height:2px; background:linear-gradient(90deg,var(--primary),var(--gold),rgba(245,158,11,0.2)); z-index:0; }
+  .tl-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:14px; position:relative; z-index:1; }
+  .tl-dot { width:56px; height:56px; border-radius:50%; background:var(--dark2); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Space Mono',monospace; font-weight:700; font-size:14px; flex-shrink:0; }
+  .tl-content { background:var(--dark2); border:1px solid var(--border); border-radius:12px; padding:16px 18px; width:100%; max-width:280px; text-align:center; }
+  .tl-phase { font-family:'Cairo',sans-serif; font-weight:700; font-size:15px; color:var(--text); margin-bottom:6px; }
+  .tl-desc { font-size:12px; color:var(--text-muted); line-height:1.7; }
+  .competitive-box { background:linear-gradient(135deg,var(--dark2) 0%,var(--dark3) 100%); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:18px 24px; max-width:1000px; width:100%; }
+  .comp-title { font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; color:var(--gold); margin-bottom:10px; }
+  .comp-items { display:flex; flex-wrap:wrap; gap:9px; }
+  .comp-pill { background:rgba(29,107,79,0.15); border:1px solid rgba(29,107,79,0.3); border-radius:20px; padding:5px 14px; font-size:12px; color:var(--primary-mid); }
+  .comp-plus { color:var(--gold); font-size:14px; display:flex; align-items:center; }
+
+  /* ═══════════════════════════════════
+     SLIDE 11 — TEAM
+  ═══════════════════════════════════ */
+  .team-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; width:100%; max-width:900px; margin-bottom:20px; }
+  .team-card { background:var(--dark2); border:1px solid var(--border); border-radius:16px; padding:26px 20px; text-align:center; position:relative; overflow:hidden; }
+  .team-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; }
+  .team-card:nth-child(1)::after { background:var(--primary-mid); }
+  .team-card:nth-child(2)::after { background:var(--gold); }
+  .team-card:nth-child(3)::after { background:#7aacf0; }
+  .team-avatar { width:60px; height:60px; border-radius:50%; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; font-family:'Cairo',sans-serif; }
+  .team-card:nth-child(1) .team-avatar { background:rgba(29,107,79,0.2); color:var(--primary-mid); }
+  .team-card:nth-child(2) .team-avatar { background:rgba(245,158,11,0.15); color:var(--gold); }
+  .team-card:nth-child(3) .team-avatar { background:rgba(70,130,200,0.15); color:#7aacf0; }
+  .team-name { font-family:'Cairo',sans-serif; font-weight:700; font-size:17px; color:var(--text); margin-bottom:3px; }
+  .team-country { font-size:11px; color:var(--text-muted); margin-bottom:8px; font-family:'Space Mono',monospace; }
+  .team-role { font-size:11px; color:var(--gold); font-weight:600; margin-bottom:8px; }
+  .team-work { font-size:11px; color:var(--text-muted); line-height:1.7; font-style:italic; }
+  .team-footer { text-align:center; }
+  .tf-logo { font-family:'Cairo',sans-serif; font-weight:900; font-size:21px; color:var(--primary-mid); margin-bottom:4px; }
+  .tf-sub { font-family:'Space Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:2px; }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="bg-texture"></div>
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter">1 / 11</div>
+<div class="nav-hint">← → للتنقل</div>
+
+<div class="slides-wrapper" id="wrapper">
+
+<!-- ═══ SLIDE 1 — COVER ═══ -->
+<div class="slide active" id="s1">
+  <div class="logo-circle"><img src="./wassel_logo.png" alt="وصّل" /></div>
+  <div class="cover-name-ar">وصّل</div>
+  <div class="cover-name-en">W A S S E L</div>
+  <div class="cover-tagline">"ادفع بأمان. <span>استلم بثقة.</span>"</div>
+  <div class="cover-divider"></div>
+  <!-- CHANGE 1: updated track label -->
+  <div class="cover-meta">SalamHack 2026 &nbsp;·&nbsp; طبقة ثقة مالية ذكية للتجارة العربية</div>
+</div>
+
+<!-- ═══ SLIDE 2 — PROBLEM ═══ -->
+<div class="slide" id="s2">
+  <div class="slide-header">
+    <div class="slide-label">02 — المشكلة</div>
+    <h2 class="section-title">لماذا COD مشكلة؟</h2>
+  </div>
+  <div class="problem-cards">
+    <div class="problem-card">
+      <div class="big-num">80%</div>
+      <div style="font-size:13px;color:var(--text);font-family:'Cairo',sans-serif;font-weight:600;margin-bottom:8px;">من التجارة الإلكترونية العربية</div>
+      <div class="card-desc">تدفع عند الاستلام — الأسواق العربية تعتمد COD بشكل شبه كامل</div>
+    </div>
+    <div class="problem-card">
+      <div class="card-title">ألم التاجر</div>
+      <div class="pain-item">التاجر يجهّز → يوصّل → يخسر</div>
+      <div class="pain-item">10-20% من الطرود ترجع</div>
+      <div class="pain-item">ينتظر أسبوعين لفلوسه</div>
+      <div class="pain-item">يدفع 20₪+ رسوم توصيل لكل عودة</div>
+    </div>
+    <div class="problem-card">
+      <div class="card-title">ألم الزبون</div>
+      <div class="pain-item">لا يثق بالدفع المسبق</div>
+      <div class="pain-item">لا ضمان حقيقي</div>
+      <div class="pain-item">"ادفع الكل أو لا تدفع شيئاً"</div>
+      <div class="pain-item">لا حماية عند النزاعات</div>
+    </div>
+  </div>
+  <div class="problem-footer">⚠️ الخيار الثنائي القسري هو الجذر الحقيقي للمشكلة</div>
+</div>
+
+<!-- ═══ SLIDE 3 — SOLUTION ═══ -->
+<div class="slide" id="s3">
+  <div class="slide-header">
+    <div class="slide-label">03 — الحل</div>
+    <div class="solution-headline">وصّل = طبقة ثقة مالية ذكية</div>
+  </div>
+  <div class="flow">
+    <div class="flow-node"><div class="node-icon">🏪</div><div class="node-label">التاجر</div></div>
+    <div class="flow-arrow">←</div>
+    <div class="center-wrapper">
+      <div class="flow-node center-node"><div class="node-icon">🔒</div><div class="node-label">وصّل</div><div class="delivery-sub">تحليل + Escrow</div></div>
+      <div class="arrow-up">↑</div>
+      <div class="delivery-node">🚚 شركة التوصيل</div>
+    </div>
+    <div class="flow-arrow">←</div>
+    <div class="flow-node"><div class="node-icon">👤</div><div class="node-label">الزبون</div></div>
+  </div>
+  <div class="solution-points">
+    <div class="sol-point"><div class="icon">🧠</div>تحلل كل زبون وتختار استراتيجية الدفع المثلى تلقائياً</div>
+    <div class="sol-point"><div class="icon">🔒</div>المبلغ محجوز في Escrow — لا يضيع ولا يُحتجز</div>
+    <div class="sol-point"><div class="icon">✅</div>يُحرر فقط عند تأكيد مزدوج: السائق + الزبون</div>
+  </div>
+  <div class="spectrum-bar">
+    <div class="label">بدلاً من "ادفع الكل أو لا تدفع شيئاً" — طيف ذكي:</div>
+    <div class="spectrum-steps">
+      <div class="spec-step">عربون</div><div class="spec-arrow">←</div>
+      <div class="spec-step">جزئي</div><div class="spec-arrow">←</div>
+      <div class="spec-step">كامل</div><div class="spec-arrow">←</div>
+      <div class="spec-step">COD محمي</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — RISK ENGINE (CHANGE 2) ═══ -->
+<div class="slide" id="s4">
+  <div class="slide-header">
+    <div class="slide-label">04 — محرك التقييم</div>
+    <h2 class="section-title">🧠 محرك درجة الثقة</h2>
+  </div>
+  <div class="risk-layout">
+    <!-- Formula box -->
+    <div class="risk-formula-box">
+      <div class="risk-formula-title">📐 معادلة الحساب:</div>
+      <div class="formula-eq">درجة الثقة = 100<br>− (معدل الإعادة × 70)<br>− (عقوبة قلة التجربة)</div>
+      <div class="formula-note">• <span>عقوبة التجربة:</span> حتى 10 نقاط للزبائن الجدد (أقل من 5 طلبات)</div>
+      <div class="formula-note">• <span>النطاق:</span> 0 (جديد/خطير) إلى 100 (موثوق تماماً)</div>
+      <div class="ai-note-gold">
+        ✨ النظام يحسب الدرجة في الوقت الحقيقي عند إدخال رقم هاتف الزبون
+      </div>
+    </div>
+
+    <!-- Strategy table -->
+    <div class="risk-formula-box" style="padding:0;overflow:hidden;">
+      <table class="strat-table">
+        <thead>
+          <tr>
+            <th>درجة الثقة</th>
+            <th>الاستراتيجية</th>
+            <th>ما يدفعه الزبون</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="score-range">0 (زبون جديد)</span></td>
+            <td><span class="strat-badge sb-red">دفع كامل مسبق</span></td>
+            <td style="font-size:12px;">100% قبل التوصيل</td>
+          </tr>
+          <tr>
+            <td><span class="score-range">1 – 29 (خطر مرتفع)</span></td>
+            <td><span class="strat-badge sb-red">دفع كامل مسبق</span></td>
+            <td style="font-size:12px;">100% قبل التوصيل</td>
+          </tr>
+          <tr>
+            <td><span class="score-range">30 – 59 (متوسط)</span></td>
+            <td><span class="strat-badge sb-orange">عربون 30%</span></td>
+            <td style="font-size:12px;">30% الآن + 70% عند الاستلام</td>
+          </tr>
+          <tr>
+            <td><span class="score-range">60 – 79 (جيد)</span></td>
+            <td><span class="strat-badge sb-yellow">عربون 20%</span></td>
+            <td style="font-size:12px;">20% الآن + 80% عند الاستلام</td>
+          </tr>
+          <tr>
+            <td><span class="score-range">80 – 100 (موثوق)</span></td>
+            <td><span class="strat-badge sb-green">COD محمي</span></td>
+            <td style="font-size:12px;">0% مسبق — الكل عند الاستلام</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — ORDER JOURNEY (CHANGE 3) ═══ -->
+<div class="slide" id="s5">
+  <div class="slide-header">
+    <div class="slide-label">05 — رحلة البيع</div>
+    <h2 class="section-title">كيف يعمل وصّل؟ — رحلة الطلب</h2>
+    <div style="font-size:13px;color:var(--text-muted);">٤ أطراف، مسار واحد موثوق</div>
+  </div>
+  <div class="journey-layout">
+    <!-- Manual flow -->
+    <div class="journey-col">
+      <div class="journey-col-title">
+        <span class="jt-badge jt-manual">يدوي</span>
+        المسار الأول — طلب يدوي (التاجر يُنشئ الطلب)
+      </div>
+      <div class="journey-step">
+        <div class="js-num green">١</div>
+        <div class="js-text">التاجر يُدخل رقم هاتف الزبون ← <strong>وصّل يحسب درجة الثقة فوراً</strong></div>
+      </div>
+      <div class="journey-step">
+        <div class="js-num green">٢</div>
+        <div class="js-text"><strong>وصّل يختار الاستراتيجية المناسبة</strong> ← يُولّد رابط دفع</div>
+      </div>
+      <div class="journey-step">
+        <div class="js-num green">٣</div>
+        <div class="js-text">الزبون يدفع (عربون أو كامل) ← <strong>الأموال تدخل الضمان</strong></div>
+      </div>
+      <div class="journey-step">
+        <div class="js-num green">٤</div>
+        <div class="js-text">التاجر يُوصّل البضاعة</div>
+      </div>
+      <div class="journey-step">
+        <div class="js-num green">٥</div>
+        <div class="js-text">الزبون يضغط "تم الاستلام" ← <strong>وصّل يُحرر الأموال للتاجر (98.5%)</strong></div>
+      </div>
+    </div>
+
+    <!-- Auto webhook flow -->
+    <div class="journey-col">
+      <div class="journey-col-title">
+        <span class="jt-badge jt-auto">تلقائي</span>
+        المسار الثاني — طلب تلقائي (شركة التوصيل ترسل webhook)
+      </div>
+      <div class="journey-step">
+        <div class="js-num gold">١</div>
+        <div class="js-text">شركة التوصيل ترسل webhook: <strong>shipment.created</strong> ← وصّل يُنشئ الطلب آلياً</div>
+      </div>
+      <div class="journey-step">
+        <div class="js-num gold">٢</div>
+        <div class="js-text"><strong>وصّل يُولّد رابط الدفع</strong> ← يُرسله للزبون</div>
+      </div>
+      <div class="journey-step">
+        <div class="js-num gold">٣</div>
+        <div class="js-text">الزبون يدفع ← <strong>الأموال تدخل الضمان</strong></div>
+      </div>
+      <div class="journey-step">
+        <div class="js-num gold">٤</div>
+        <div class="js-text">السائق يُحدّث الحالة: <strong>"تسليم آمن"</strong> (shipment.delivered)</div>
+      </div>
+      <div class="journey-step">
+        <div class="js-num gold">٥</div>
+        <div class="js-text">الزبون يُؤكّد الاستلام ← <strong>وصّل يُحرر الأموال (98.5% للتاجر، عمولة 1.5%)</strong></div>
+      </div>
+    </div>
+  </div>
+  <div class="refusal-callout">
+    💡 <strong>في حالة رفض التوصيل:</strong> رسوم التوصيل فقط تُخصم — والباقي يُعاد للزبون تلقائياً
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — DEMO + AI INSIGHT (CHANGE 4) ═══ -->
+<div class="slide" id="s6">
+  <div class="slide-header">
+    <div class="slide-label">06 — الديمو</div>
+    <h2 class="section-title">النموذج الأولي — يعمل كاملاً</h2>
+  </div>
+
+  <!-- AI Insight box -->
+  <div class="ai-insight-box">
+    <div class="ai-insight-title">✨ ذكاء اصطناعي مدمج — تحليل الزبون</div>
+    <div class="ai-insight-desc">
+      عند إدخال رقم هاتف الزبون، يُولّد النظام تلقائياً نصاً توضيحياً بالعربية يشرح سبب الدرجة والاستراتيجية المختارة.<br>
+      مثال: <span style="color:var(--gold)">'زبون موثوق بـ 15 طلب ناجح وإعادة واحدة فقط — نوصي بـ COD محمي'</span>
+    </div>
+  </div>
+
+  <!-- Mockups row -->
+  <div class="demo-layout" style="margin-bottom:12px;">
+    <div class="desktop-mock">
+      <div class="mock-bar">
+        <div class="mock-dot" style="background:#E05252"></div>
+        <div class="mock-dot" style="background:var(--gold)"></div>
+        <div class="mock-dot" style="background:var(--primary-mid)"></div>
+        <div style="flex:1;background:var(--dark2);height:13px;border-radius:3px;margin-right:8px;"></div>
+      </div>
+      <div class="mock-content">
+        <div class="mock-stat-row">
+          <div class="mock-stat"><div class="ms-num">5</div><div class="ms-label">طلبات</div></div>
+          <div class="mock-stat"><div class="ms-num" style="color:var(--primary-mid)">240₪</div><div class="ms-label">Escrow</div></div>
+          <div class="mock-stat"><div class="ms-num" style="color:#5dba94">150₪</div><div class="ms-label">مُحرَّر</div></div>
+        </div>
+        <div class="mock-table-row"><div style="font-size:9px;color:var(--text-muted)">محمد علي</div><div class="mock-badge badge-green">مكتمل</div></div>
+        <div class="mock-table-row"><div style="font-size:9px;color:var(--text-muted)">سارة محمود</div><div class="mock-badge badge-yellow">عربون</div></div>
+        <div class="mock-table-row"><div style="font-size:9px;color:var(--text-muted)">خالد أحمد</div><div class="mock-badge badge-blue">في الطريق</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div class="live-badge"><div class="live-icon">⚡</div><div class="live-text">LIVE DEMO</div></div>
+    </div>
+    <div style="display:flex;justify-content:center;">
+      <div class="mobile-mock">
+        <div class="mobile-bar"><div class="mobile-notch"></div></div>
+        <div class="mobile-content">
+          <div class="mobile-title">🔒 رابط الدفع</div>
+          <div class="mobile-amount">200₪</div>
+          <div class="mobile-option"><div style="color:var(--gold);font-weight:600;font-size:8px;margin-bottom:2px;">عربون 20%</div>ادفع 40₪ الآن</div>
+          <div class="mobile-option" style="border-color:rgba(29,107,79,0.3);"><div style="color:var(--primary-mid);font-weight:600;font-size:8px;margin-bottom:2px;">دفع كامل</div>200₪ مضمونة</div>
+          <div class="mobile-btn">ادفع بأمان ✓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Impact row -->
+  <div class="impact-row">
+    <div class="impact-card"><div class="impact-num" style="font-size:15px;">API</div><div class="impact-label">إجمالي الأموال المحمية في الضمان — رقم حي</div></div>
+    <div class="impact-card"><div class="impact-num">94%</div><div class="impact-label">نسبة إطلاق الأموال في الوقت المحدد</div></div>
+    <div class="impact-card"><div class="impact-num">&lt;48h</div><div class="impact-label">متوسط وقت الإطلاق</div></div>
+    <div class="impact-card"><div class="impact-num">Auto</div><div class="impact-label">عدد النزاعات المحلولة تلقائياً — رقم حي</div></div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — TECH STACK (CHANGE 5) ═══ -->
+<div class="slide" id="s7">
+  <div class="slide-header">
+    <div class="slide-label">07 — مجموعة التكنولوجيا</div>
+    <h2 class="section-title">Tech Stack</h2>
+  </div>
+  <div class="tech-grid">
+    <div class="tech-card"><div class="tech-icon">⚡</div><div class="tech-name">FastAPI</div><div class="tech-desc">Backend API سريع، موثوق، موثَّق تلقائياً</div></div>
+    <div class="tech-card"><div class="tech-icon">🗄️</div><div class="tech-name">SQLite</div><div class="tech-desc">قاعدة بيانات خفيفة مثالية للبروتوتايب</div></div>
+    <div class="tech-card"><div class="tech-icon">⚛️</div><div class="tech-name">React + Vite</div><div class="tech-desc">Frontend سريع مع RTL كامل للعربي</div></div>
+    <div class="tech-card"><div class="tech-icon">🎨</div><div class="tech-name">TailwindCSS + shadcn</div><div class="tech-desc">تصميم احترافي متجاوب بدون تعقيد</div></div>
+    <div class="tech-card"><div class="tech-icon">📊</div><div class="tech-name">Recharts</div><div class="tech-desc">مخططات بيانية حية للمعاملات الأسبوعية</div></div>
+    <div class="tech-card"><div class="tech-icon">🔗</div><div class="tech-name">Webhooks</div><div class="tech-desc">تكامل ثنائي مع شركات التوصيل</div></div>
+    <div class="tech-card"><div class="tech-icon">⏰</div><div class="tech-name">APScheduler</div><div class="tech-desc">تحرير تلقائي + إنهاء روابط الدفع</div></div>
+    <div class="tech-card"><div class="tech-icon">🚀</div><div class="tech-name">Railway + Vercel</div><div class="tech-desc">نشر سريع وموثوق للـ backend والـ frontend</div></div>
+    <div class="tech-card"><div class="tech-icon">🔒</div><div class="tech-name">Escrow Manager</div><div class="tech-desc">escrow_manager.py — مُبرمج ومختبر بالكامل</div></div>
+  </div>
+  <div class="ai-highlight">
+    <div class="ai-title">🧠 محرك الثقة: قواعد قرار محددة (Rule-based ML)</div>
+    <div class="ai-desc">لا يحتاج بيانات تدريب — يعمل فوراً مع أول طلب. خوارزمية مخصصة تختار استراتيجية الدفع تلقائياً من العربون إلى COD المحمي</div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — BUSINESS MODEL (CHANGE 6) ═══ -->
+<div class="slide" id="s8">
+  <div class="slide-header">
+    <div class="slide-label">08 — نموذج الأعمال</div>
+    <h2 class="section-title">كيف تربح وصّل؟</h2>
+  </div>
+  <div class="biz-layout">
+    <div class="biz-section">
+      <div class="biz-section-title">👥 المستخدمون</div>
+      <div class="biz-item"><span class="biz-tag">B2C</span>التجار الصغار والمتوسطون — إنستغرام ومواقع التجارة</div>
+      <div class="biz-item"><span class="biz-tag b2b">B2B</span>شركات التوصيل عبر Webhook integration</div>
+      <div class="biz-item"><span class="biz-tag b2c2">C</span>الزبون العربي الذي لا يثق بالدفع المسبق</div>
+    </div>
+    <div class="biz-section">
+      <div class="biz-section-title">💰 مصادر الدخل</div>
+      <div class="biz-item"><span class="biz-tag">SaaS</span>اشتراك شهري: 10–30$ للتاجر</div>
+      <div class="biz-item"><span class="biz-tag b2b">TXN</span>رسوم المنصة: 1.5% من كل صفقة — محسوبة ومطبَّقة تلقائياً عند إطلاق الضمان</div>
+      <div class="biz-item"><span class="biz-tag b2c2">API</span>رسوم تكامل API لشركات التوصيل</div>
+      <div class="biz-fee-note">
+        💻 مُبرمج في escrow_manager.py — 98.5% للتاجر + 1.5% لوصّل
+      </div>
+    </div>
+  </div>
+  <div class="biz-stats">
+    <div class="biz-stat-card"><div class="biz-stat-num">$20B</div><div class="biz-stat-label">حجم سوق BNPL في منطقة MENA — فرصة نمو ضخمة</div></div>
+    <div class="biz-stat-card"><div class="biz-stat-num">80%+</div><div class="biz-stat-label">نسبة COD في التجارة الإلكترونية العربية — المشكلة موجودة الآن</div></div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — SCENARIOS (CHANGE 7) ═══ -->
+<div class="slide" id="s9">
+  <div class="slide-header">
+    <div class="slide-label">09 — السيناريوهات المنفَّذة</div>
+    <h2 class="section-title">٨ سيناريوهات — ٦ مُنجزة بالكامل</h2>
+  </div>
+  <div class="scenarios-grid">
+    <div class="scenario-card">
+      <div class="sc-icon">✅</div>
+      <div>
+        <div><span class="sc-badge done">مكتمل</span></div>
+        <div class="sc-title">المسار السعيد — Webhook → دفع → توصيل → إطلاق تلقائي</div>
+        <div class="sc-desc">الزبون يدفع، السائق يُسلّم، وصّل يُطلق الأموال للتاجر فوراً</div>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-icon">✅</div>
+      <div>
+        <div><span class="sc-badge done">مكتمل</span></div>
+        <div class="sc-title">إنشاء طلب يدوي من لوحة التاجر</div>
+        <div class="sc-desc">التاجر يُنشئ الطلب مباشرة — تأكيد فوري من الزبون دون انتظار سائق</div>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-icon">✅</div>
+      <div>
+        <div><span class="sc-badge done">مكتمل</span></div>
+        <div class="sc-title">خيار الدفع الكامل (تجاوز العربون)</div>
+        <div class="sc-desc">الزبون يختار الدفع الكامل مسبقاً — عند الثقة الكاملة بالتاجر</div>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-icon">✅</div>
+      <div>
+        <div><span class="sc-badge done">مكتمل</span></div>
+        <div class="sc-title">رفض التوصيل — استرداد جزئي تلقائي</div>
+        <div class="sc-desc">الزبون يرفض الاستلام → رسوم التوصيل تُخصم فقط والباقي يُعاد تلقائياً</div>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-icon">✅</div>
+      <div>
+        <div><span class="sc-badge done">مكتمل</span></div>
+        <div class="sc-title">نزاع الزبون — تجميد + استرداد 70%</div>
+        <div class="sc-desc">الزبون يُبلّغ عن مشكلة → Escrow يتجمد، 70% يُعاد للزبون</div>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-icon">✅</div>
+      <div>
+        <div><span class="sc-badge done">مكتمل</span></div>
+        <div class="sc-title">إلغاء التاجر قبل الدفع</div>
+        <div class="sc-desc">التاجر يُلغي الطلب قبل أن يدفع الزبون → لا رسوم ولا أضرار</div>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-icon">⚡</div>
+      <div>
+        <div><span class="sc-badge auto">مُجدول تلقائي</span></div>
+        <div class="sc-title">الإطلاق التلقائي بعد 48 ساعة (APScheduler)</div>
+        <div class="sc-desc">إذا لم يتفاعل الزبون — وصّل يُطلق الأموال تلقائياً بعد 48 ساعة</div>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-icon">⚡</div>
+      <div>
+        <div><span class="sc-badge auto">مُجدول تلقائي</span></div>
+        <div class="sc-title">انتهاء صلاحية رابط الدفع بعد 24 ساعة (APScheduler)</div>
+        <div class="sc-desc">روابط الدفع تنتهي تلقائياً — حماية من الروابط القديمة المفتوحة</div>
+      </div>
+    </div>
+  </div>
+  <div class="scheduler-note">
+    ⏰ السيناريوان الأخيران يعتمدان على مُجدول يعمل في الخلفية كل <span>60 ثانية</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — INVESTMENT ═══ -->
+<div class="slide" id="s10">
+  <div class="slide-header">
+    <div class="slide-label">10 — خارطة الطريق</div>
+    <h2 class="section-title">عرض الاستثمار</h2>
+  </div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot" style="border-color:var(--primary-mid);color:var(--primary-mid);">01</div>
+      <div class="tl-content">
+        <div class="tl-phase">🇵🇸 فلسطين — Pilot</div>
+        <div class="tl-desc">تجار إنستغرام + شركات توصيل محلية<br>إثبات الفكرة في سوق نعرفه</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="border-color:var(--gold);color:var(--gold);">02</div>
+      <div class="tl-content">
+        <div class="tl-phase">🌍 MENA</div>
+        <div class="tl-desc">الأردن + مصر + المغرب<br>أكبر أسواق COD في المنطقة</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="border-color:rgba(245,158,11,0.4);color:rgba(245,158,11,0.5);">03</div>
+      <div class="tl-content">
+        <div class="tl-phase">🚀 التوسع</div>
+        <div class="tl-desc">شراكات دولية مع شركات توصيل<br>BNPL حلال + تمويل التجار</div>
+      </div>
+    </div>
+  </div>
+  <div class="competitive-box">
+    <div class="comp-title">⚔️ لا يوجد في السوق العربي حل يجمع كل هذا:</div>
+    <div class="comp-items">
+      <div class="comp-pill">Escrow ذكي</div><div class="comp-plus">+</div>
+      <div class="comp-pill">Risk Scoring</div><div class="comp-plus">+</div>
+      <div class="comp-pill">تكامل شركات التوصيل</div><div class="comp-plus">+</div>
+      <div class="comp-pill">بيئات دفع محدودة</div><div class="comp-plus">+</div>
+      <div class="comp-pill">طيف استراتيجيات الدفع</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 11 — TEAM ═══ -->
+<div class="slide" id="s11">
+  <div class="slide-header">
+    <div class="slide-label">11 — فريق العمل</div>
+    <h2 class="section-title">من نحن؟</h2>
+  </div>
+  <div class="team-cards">
+    <div class="team-card">
+      <div class="team-avatar">ع</div>
+      <div class="team-name">عزة عيد</div>
+      <div class="team-country">🇵🇸 فلسطين | هندسة حاسوب</div>
+      <div class="team-role">Optimization Software Engineer</div>
+      <div class="team-work">Strategy Engine + Escrow Logic + API Architecture</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">ش</div>
+      <div class="team-name">شهد قلالوة</div>
+      <div class="team-country">🇵🇸 فلسطين | هندسة حاسوب</div>
+      <div class="team-role">Backend + Data Engineer</div>
+      <div class="team-work">Risk Scoring + Database + Webhooks</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">م</div>
+      <div class="team-name">منة بدير</div>
+      <div class="team-country">🇵🇸 فلسطين | هندسة حاسوب</div>
+      <div class="team-role">Frontend Engineer</div>
+      <div class="team-work">Dashboard + Payment Page + UI/UX</div>
+    </div>
+  </div>
+  <div class="team-footer">
+    <img src="./wassel_logo.png" alt="وصّل" style="width:44px;height:44px;object-fit:contain;margin:0 auto 8px;display:block;filter:drop-shadow(0 2px 6px rgba(29,107,79,0.3));" />
+    <div class="tf-logo">وصّل — Wassel</div>
+    <div class="tf-sub">SALAMHACK 2026 &nbsp;·&nbsp; طبقة ثقة مالية ذكية</div>
+  </div>
+</div>
+
+</div><!-- end slides-wrapper -->
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const total = slides.length;
+  let current = 0;
+  let animating = false;
+
+  function goTo(n) {
+    if (animating || n === current) return;
+    if (n < 0 || n >= total) return;
+    animating = true;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 550);
+    current = n;
+    slides[current].classList.add('active');
+    counter.textContent = `${current + 1} / ${total}`;
+    progress.style.width = `${((current + 1) / total) * 100}%`;
+    setTimeout(() => { animating = false; }, 600);
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === ' ') next();
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') prev();
+  });
+
+  document.addEventListener('click', e => {
+    if (e.clientX < window.innerWidth / 2) prev(); else next();
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(dx) > 50) { dx > 0 ? next() : prev(); }
+  });
+
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+    cursor.classList.toggle('big', e.clientX < window.innerWidth / 2);
+  });
+
+  progress.style.width = `${(1 / total) * 100}%`;
+</script>
+</body>
+</html>
