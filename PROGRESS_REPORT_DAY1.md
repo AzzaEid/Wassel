@@ -1,15 +1,63 @@
-# Wassel — Day 1 Progress Report (Demo Day)
-**Date:** April 29, 2026  
-**Hackathon Day:** 1 of 2  
+# Wassel — Progress Report
 **Project:** Wassel — Smart Escrow Trust Layer for Arab COD E-commerce
 
 ---
 
-## Executive Summary
+## Day 1 — April 29, 2026 ✅ COMPLETE
 
-The core product is functional and demo-ready. All 8 business scenarios from the spec are either fully implemented or partially implemented with manual workarounds available via the Admin Panel. The main gaps are automated background jobs (48h auto-release, 24h link expiry) and an unresolved backend startup error that needs immediate attention before Day 2.
+**Overall Status:** ✅ All Day 1 goals achieved
 
-**Overall Status:** 🟡 Core Flow Working — 2 Gaps Need Fixing
+### What was completed on Day 1:
+- Fixed backend startup errors — server runs cleanly
+- Added `source` field (`"manual"` / `"webhook"`) to Order model — controls confirmation flow
+- Added customer name input for new customers in Dashboard
+- Added background scheduler: 48h auto-release + 24h link expiry (APScheduler, runs every 60s)
+- Updated escrow confirm logic: manual orders skip driver step, webhook orders require driver first
+- Updated PaymentPage: manual orders show confirm/dispute immediately after payment
+- End-to-end smoke test passed: create → pay → confirm → merchant credited
+- Submitted 2-minute progress review video ✅
+
+---
+
+## Day 2 — April 30, 2026 ✅ COMPLETE
+
+**Overall Status:** ✅ All Day 2 goals achieved
+
+### What was completed on Day 2:
+- `DeliveryCompanyPage.tsx` (`/delivery-company`) — merchant entry form, triggers `shipment.created` webhook
+- `DriverPage.tsx` (`/driver`) — driver status page, "تسليم آمن" / "رفض التسليم" buttons
+- `FloatingNav.tsx` — floating nav component (bottom-right), replaces navbar links
+- `GET /api/admin/delivery-queue` — returns webhook orders in paid state for driver page
+- All routes wired in `App.tsx`, quick links added to AdminPanel
+- Day 2 progress review video submitted ✅
+
+### Known bugs carried into Day 3:
+- `DeliveryCompanyPage` input fields accept only 1 character (Field component defined inside function — React remounts on every keystroke)
+- `DeliveryCompanyPage` calls `createOrder` instead of webhook endpoint → sets `source="manual"` → confirm button appears immediately, bypassing driver step
+
+---
+
+## Day 3 — May 1, 2026 🔄 IN PROGRESS (FINAL DAY — video due tonight)
+
+**Overall Status:** 🔴 Bug fixes + 5 enhancements + final video
+
+### Day 3 Plan:
+| # | Task | Priority | Est. Time |
+|---|------|----------|-----------|
+| 14 | Fix DeliveryCompanyPage: inputs + webhook source | 🔴 CRITICAL | 30 min |
+| 15 | AI insight text on Risk Score card | 🔴 HIGH | 45 min |
+| 16 | Impact widget in Dashboard | 🔴 HIGH | 45 min |
+| 17 | Weekly Recharts bar chart in Dashboard | 🟠 HIGH | 1 hour |
+| 18 | Landing page at `/` | 🟡 MEDIUM | 1 hour |
+| 19 | Mobile polish on PaymentPage | 🟠 HIGH | 30 min |
+| — | Final 5-min demo video | 🔴 MANDATORY | 2 hours |
+
+### Day 2 Feature Description:
+**Page 1 — Delivery Company Merchant Entry (`/delivery-company`)**
+Simulates the delivery company's website. Merchant fills package details (customer phone/name, product, amount, address) and submits. This fires a `shipment.created` webhook to Wassel, which creates the order and generates a payment link automatically.
+
+**Page 2 — Driver Page (`/driver`)**
+Simulates the delivery driver's view. Shows all webhook-sourced orders in paid state (escrow funded, package out for delivery). Driver can mark each as "تسليم آمن" (`shipment.delivered`) or "رفض التسليم" (`shipment.refused`). Both trigger webhooks that update the Wassel escrow state machine.
 
 ---
 

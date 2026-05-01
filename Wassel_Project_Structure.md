@@ -73,7 +73,8 @@ wassel/
 │       │   └── api.ts               # Axios client → backend
 │       │
 │       ├── components/
-│       │   ├── Layout.tsx            # RTL wrapper + header
+│       │   ├── Layout.tsx            # RTL wrapper + header (بدون nav links — تمت إزالتها)
+│       │   ├── FloatingNav.tsx       # زر عائم ثابت (bottom-right) يفتح قائمة تنقل بين الصفحات
 │       │   ├── RiskBadge.tsx         # 🟢🟡🔴 badge
 │       │   ├── EscrowStatus.tsx      # حالة Escrow بالألوان
 │       │   ├── OrdersTable.tsx       # جدول الطلبات
@@ -83,8 +84,10 @@ wassel/
 │       │
 │       └── pages/
 │           ├── Dashboard.tsx         # /dashboard — واجهة التاجر
-│           ├── PaymentPage.tsx       # /pay/:orderId — صفحة الزبون
-│           └── AdminPanel.tsx        # /admin — لوحة تحكم الديمو
+│           ├── PaymentPage.tsx       # /pay/:orderId — صفحة الزبون (لا FloatingNav هنا)
+│           ├── AdminPanel.tsx        # /admin — لوحة تحكم الديمو
+│           ├── DeliveryCompanyPage.tsx # /delivery-company — موقع شركة التوصيل (محاكاة)
+│           └── DriverPage.tsx        # /driver — صفحة السائق (محاكاة)
 │
 └── docs/
     ├── scenario.md                   # السيناريو المؤكد (من هذه المحادثة)
@@ -224,15 +227,15 @@ wassel/
 ```python
 # EscrowStateMachine:
 #   empty → funded (عند الدفع)
-#   funded → driver_confirmed (عند webhook التسليم)
-#   funded → refunded (عند webhook الرفض)
-#   funded → auto_released (عند 48h timeout)
-#   funded → frozen (عند إبلاغ الزبون)
-#   driver_confirmed → released (عند تأكيد الزبون)
-#   driver_confirmed → frozen (عند إبلاغ الزبون)
-#   driver_confirmed → auto_released (عند 48h timeout)
-#   funded/driver_confirmed + cancel before pay → cancelled
-#   empty + 24h → expired
+#   funded → released       (طلب يدوي — الزبون يؤكد مباشرة، لا سائق)
+#   funded → driver_confirmed (webhook — السائق يؤكد التسليم)
+#   funded → refunded (webhook — رفض التسليم)
+#   funded → auto_released (48h scheduler)
+#   funded → frozen (إبلاغ الزبون عن مشكلة)
+#   driver_confirmed → released (webhook — الزبون يؤكد بعد السائق)
+#   driver_confirmed → frozen (إبلاغ الزبون عن مشكلة)
+#   driver_confirmed → auto_released (48h scheduler)
+#   empty + 24h scheduler → expired
 ```
 
 ### Frontend
@@ -240,10 +243,27 @@ wassel/
 #### src/App.tsx
 ```tsx
 // React Router:
-// /dashboard         → Dashboard.tsx
-// /pay/:orderId      → PaymentPage.tsx
-// /admin             → AdminPanel.tsx
-// /                  → redirect to /dashboard
+// /dashboard          → Dashboard.tsx
+// /pay/:orderId       → PaymentPage.tsx
+// /admin              → AdminPanel.tsx
+// /delivery-company   → DeliveryCompanyPage.tsx  (محاكاة موقع شركة التوصيل)
+// /driver             → DriverPage.tsx           (محاكاة صفحة السائق)
+// /                   → redirect to /dashboard
+```
+
+#### src/components/FloatingNav.tsx
+```tsx
+// زر عائم ثابت position:fixed bottom-right
+// حالة مغلقة: يعرض ☰ بخلفية --primary
+// حالة مفتوحة: يعرض ✕ مع تدوير + popup قائمة 4 عناصر:
+//   🏪 لوحة التاجر   → /dashboard
+//   ⚙️ لوحة التحكم   → /admin
+//   🚚 شركة التوصيل  → /delivery-company
+//   🛵 صفحة السائق   → /driver
+// الصفحة الحالية: خلفية --primary-light + نقطة خضراء
+// يُستخدم في: Layout.tsx, DeliveryCompanyPage.tsx, DriverPage.tsx
+// لا يُستخدم في: PaymentPage.tsx (صفحة الزبون)
+// يُغلق عند الضغط خارجه (mousedown listener)
 ```
 
 #### src/globals.css

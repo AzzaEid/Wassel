@@ -73,6 +73,50 @@
 
 ---
 
+## صفحات محاكاة شركة التوصيل (Day 2)
+
+### صفحة 1 — إدخال الشحنة (`/delivery-company`)
+تُحاكي موقع شركة التوصيل من ناحية التاجر.
+
+**المكوّن:** `frontend/src/pages/DeliveryCompanyPage.tsx`
+
+**تصميم الصفحة:**
+- Header بلون أزرق داكن (يُوحي بموقع شركة توصيل)
+- حقول: هاتف الزبون، اسم الزبون، وصف المحتوى، قيمة الشحنة، عنوان التسليم
+- زر "تسجيل الشحنة" → يُرسل `POST /webhooks/delivery` مع `event: "shipment.created"`
+- عند النجاح: يعرض رابط دفع وصّل مع زرَّي "فتح رابط الزبون" و"لوحة وصّل"
+
+**الـ Flow:**
+```
+التاجر يُدخل البيانات → POST /webhooks/delivery (shipment.created)
+→ وصّل ينشئ Order (source="webhook") + EscrowAccount
+→ يُعيد payment_url → يظهر في الصفحة
+```
+
+---
+
+### صفحة 2 — صفحة السائق (`/driver`)
+تُحاكي تطبيق السائق الميداني.
+
+**المكوّن:** `frontend/src/pages/DriverPage.tsx`
+
+**تصميم الصفحة:**
+- Header برتقالي مع عداد الطلبات الجاهزة
+- يعرض كل طلبات `source="webhook"` بحالة `deposit_paid` أو `fully_paid`
+- لكل طلب: اسم الزبون، العنوان، المنتج، المبلغ، اسم المتجر
+- زر "✅ تسليم آمن" → `POST /webhooks/delivery` مع `event: "shipment.delivered"`
+- زر "↩️ رفض التسليم" → `POST /webhooks/delivery` مع `event: "shipment.refused"`
+- polling كل 5 ثوانٍ
+
+**الـ Endpoint المطلوب (backend):**
+```python
+# routes/admin.py
+GET /api/admin/delivery-queue
+# يُعيد: orders حيث source="webhook" و status in ["deposit_paid","fully_paid"]
+```
+
+---
+
 ## ما لا نبنيه — قواعد صارمة
 
 - ❌ Authentication (نستخدم `?merchant=merchant-001` في الـ URL)
