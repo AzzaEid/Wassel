@@ -5,6 +5,7 @@ import OrdersTable from '../components/OrdersTable'
 import RiskBadge from '../components/RiskBadge'
 import StrategyCard from '../components/StrategyCard'
 import { getDashboard, getScoring, createOrder, cancelOrder } from '../lib/api'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 const MERCHANT_ID = 'merchant-001'
 
@@ -100,6 +101,48 @@ export default function Dashboard() {
       {/* Stats */}
       {data?.stats && <StatsGrid stats={data.stats} />}
 
+      {/* Impact Widget */}
+      {data?.stats && data.stats.released_this_week > 0 && (
+        <div style={{
+          marginTop: 16, padding: '1rem 1.25rem', borderRadius: 12,
+          background: 'linear-gradient(135deg, #1D6B4F 0%, #0D4A36 100%)',
+          color: 'white', display: 'flex', gap: 24, flexWrap: 'wrap',
+        }}>
+          <div>
+            <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 4 }}>💰 محمي في Escrow</div>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>{data.stats.escrow_held.toFixed(0)}₪</div>
+          </div>
+          <div style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.2)' }} />
+          <div>
+            <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 4 }}>✅ محرَّر هذا الأسبوع</div>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>{data.stats.released_this_week.toFixed(0)}₪</div>
+          </div>
+          <div style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.2)' }} />
+          <div>
+            <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 4 }}>🛡️ إعادات مُجنَّبة</div>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>{data.stats.returned_count} × 20₪</div>
+          </div>
+          <div style={{ marginRight: 'auto', alignSelf: 'center', fontSize: 12, opacity: 0.7, maxWidth: 140 }}>
+            بدون وصّل كنت خسرت تكاليف التوصيل على كل إعادة
+          </div>
+        </div>
+      )}
+
+      {/* Weekly Chart */}
+      {data?.weekly_chart && data.weekly_chart.some((d: any) => d.amount > 0) && (
+        <div style={{ marginTop: 16, backgroundColor: 'white', border: '1px solid var(--border)', borderRadius: 12, padding: '1.25rem' }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>نشاط Escrow — آخر 7 أيام</div>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={data.weekly_chart} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} />
+              <Tooltip formatter={(v: any) => [`${v}₪`, 'مدفوع']} />
+              <Bar dataKey="amount" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {/* New Order */}
       <div style={{ marginTop: 24, backgroundColor: 'white', border: '1px solid var(--border)', borderRadius: 12, padding: '1.5rem' }}>
         <h2 style={{ margin: '0 0 1rem', fontSize: 16, fontWeight: 600 }}>إنشاء طلب جديد</h2>
@@ -137,6 +180,15 @@ export default function Dashboard() {
                 : <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>زبون جديد — سيُنشأ حسابه تلقائياً</span>}
             </div>
             <StrategyCard scoring={scoring} amount={amountNum} />
+            {scoring.ai_insight && (
+              <div style={{
+                marginTop: 10, padding: '10px 12px', borderRadius: 8,
+                backgroundColor: '#F0FFF9', border: '1px solid #A7D7C5',
+                fontSize: 13, color: '#1D6B4F', lineHeight: 1.6,
+              }}>
+                ✨ <strong>تحليل وصّل:</strong> {scoring.ai_insight}
+              </div>
+            )}
           </div>
         )}
 

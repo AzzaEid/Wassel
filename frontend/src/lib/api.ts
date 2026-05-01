@@ -67,3 +67,13 @@ export const getDeliveryQueue = () =>
 
 export const fireDriverAction = (action: 'delivered' | 'refused', orderId: string) =>
   api.post(`/api/admin/simulate/${action}/${orderId}`).then(r => r.data)
+
+export const sendDeliveryWebhook = (data: {
+  event: string
+  merchant_id: string
+  customer_phone: string
+  customer_name?: string
+  product_name: string
+  total_amount: number
+  delivery_address?: string
+}) => api.post('/webhooks/delivery', data).then(r => r.data)

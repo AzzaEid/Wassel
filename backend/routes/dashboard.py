@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime, timedelta
 
 from database import get_db
-from models import Merchant, Customer, Order, EscrowAccount
+from models import Merchant, Customer, Order, EscrowAccount, Transaction
 
 router = APIRouter()
 
@@ -52,6 +53,18 @@ def get_dashboard(merchant_id: str, db: Session = Depends(get_db)):
 
     return_rate = round((returned_count / total_orders * 100), 1) if total_orders > 0 else 0.0
 
+    chart_data = []
+    for i in range(6, -1, -1):
+        day = (datetime.utcnow() - timedelta(days=i)).date()
+        paid = db.query(func.coalesce(func.sum(Transaction.amount), 0)).join(
+            Order, Transaction.order_id == Order.id
+        ).filter(
+            Order.merchant_id == merchant_id,
+            Transaction.type.in_(["full", "deposit"]),
+            func.date(Transaction.created_at) == str(day),
+        ).scalar()
+        chart_data.append({"day": day.strftime("%d/%m"), "amount": round(float(paid), 2)})
+
     return {
         "merchant": {
             "name": merchant.name,
@@ -64,5 +77,6 @@ def get_dashboard(merchant_id: str, db: Session = Depends(get_db)):
             "return_rate_percent": return_rate,
             "returned_count": returned_count,
         },
+        "weekly_chart": chart_data,
         "orders": orders_list,
     }

@@ -173,9 +173,9 @@ export default function PaymentPage() {
             onClick={handleConfirm}
             disabled={confirming}
             style={{
-              width: '100%', padding: '14px', borderRadius: 10,
+              width: '100%', padding: '16px', borderRadius: 10,
               backgroundColor: 'var(--primary)', color: 'white',
-              border: 'none', fontWeight: 600, fontSize: 15, cursor: 'pointer',
+              border: 'none', fontWeight: 600, fontSize: 16, cursor: 'pointer',
             }}
           >
             {confirming ? 'جاري المعالجة...' : '✅ تأكيد الاستلام'}
@@ -184,9 +184,9 @@ export default function PaymentPage() {
             onClick={handleDispute}
             disabled={disputing}
             style={{
-              width: '100%', padding: '14px', borderRadius: 10,
+              width: '100%', padding: '16px', borderRadius: 10,
               backgroundColor: 'var(--danger-light)', color: 'var(--danger)',
-              border: '1px solid var(--danger)', fontWeight: 600, fontSize: 15, cursor: 'pointer',
+              border: '1px solid var(--danger)', fontWeight: 600, fontSize: 16, cursor: 'pointer',
             }}
           >
             {disputing ? 'جاري المعالجة...' : '⚠️ في مشكلة'}
@@ -314,7 +314,7 @@ export default function PaymentPage() {
         </div>
 
         {/* Card number - 4 groups */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 10, direction: 'ltr' }}>
+        <div style={{ display: 'flex', gap: 4, marginBottom: 10, direction: 'ltr' }}>
           {cards.map((v, i) => (
             <input
               key={i}
@@ -326,8 +326,8 @@ export default function PaymentPage() {
               }}
               maxLength={4}
               style={{
-                flex: 1, border: '1px solid var(--border)', borderRadius: 6,
-                padding: '8px', fontSize: 14, textAlign: 'center',
+                flex: 1, minWidth: 0, border: '1px solid var(--border)', borderRadius: 6,
+                padding: '10px 4px', fontSize: 16, textAlign: 'center',
                 letterSpacing: 3, outline: 'none',
               }}
             />
@@ -395,7 +395,7 @@ function PageShell({ children }: { children: React.ReactNode }) {
     <div style={{
       minHeight: '100vh', backgroundColor: 'var(--bg)',
       display: 'flex', justifyContent: 'center',
-      padding: '1.5rem 1rem',
+      padding: '1rem',
     }}>
       <div style={{ width: '100%', maxWidth: 440 }}>{children}</div>
     </div>
